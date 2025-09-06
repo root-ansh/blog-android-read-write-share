@@ -17,11 +17,11 @@ import android.provider.OpenableColumns
 import android.text.format.Formatter
 import android.webkit.MimeTypeMap
 import android.widget.Toast
+import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
 import kotlin.jvm.Throws
 
@@ -166,7 +166,7 @@ fun File.imageFileToBitmap(): Bitmap? {
 
 
 @Throws
-suspend fun Context.writeFileToUserSelectedPath(uri: Uri, sourceFile: File): Uri {
+suspend fun Context.saveFileToUserSelectedPath(uri: Uri, sourceFile: File): Uri {
     return withContext(Dispatchers.IO) {
         contentResolver.openOutputStream(uri)?.use { outputStream ->
             sourceFile.inputStream().use { inputStream ->
@@ -178,7 +178,7 @@ suspend fun Context.writeFileToUserSelectedPath(uri: Uri, sourceFile: File): Uri
 }
 
 @Throws
-suspend fun Context.writeBitmapToUserSelectedPath(uri: Uri, bitmap: Bitmap): Uri {
+suspend fun Context.saveBitmapToUserSelectedPath(uri: Uri, bitmap: Bitmap): Uri {
     return withContext(Dispatchers.IO){
         contentResolver.openOutputStream(uri)?.use { outputStream ->
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
@@ -189,7 +189,7 @@ suspend fun Context.writeBitmapToUserSelectedPath(uri: Uri, bitmap: Bitmap): Uri
 }
 
 @Throws
-suspend fun Context.writeFileToUserMemory(
+suspend fun Context.saveFileToUserMemory(
     sourceFile: File,
     targetDirectory: String = Environment.DIRECTORY_DOWNLOADS
 ): Uri {
@@ -206,7 +206,7 @@ suspend fun Context.writeFileToUserMemory(
         }
         val resolver = contentResolver
         val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)!!
-        writeFileToUserSelectedPath(uri,sourceFile)
+        saveFileToUserSelectedPath(uri,sourceFile)
         values.clear()
         values.put(MediaStore.Downloads.IS_PENDING, 0)
         resolver.update(uri, values, null, null)
@@ -215,7 +215,7 @@ suspend fun Context.writeFileToUserMemory(
 }
 
 
-suspend fun Context.writeBitmapToUserMemory(
+suspend fun Context.saveBitmapToUserMemory(
     bitmap: Bitmap,
     targetDirectory: String = Environment.DIRECTORY_DOWNLOADS,
 ): Uri {
@@ -229,7 +229,7 @@ suspend fun Context.writeBitmapToUserMemory(
         }
         val resolver = contentResolver
         val uri: Uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)!!
-        writeBitmapToUserSelectedPath(uri,bitmap)
+        saveBitmapToUserSelectedPath(uri,bitmap)
         values.clear()
         values.put(MediaStore.Downloads.IS_PENDING, 0)
         resolver.update(uri, values, null, null)
@@ -237,10 +237,21 @@ suspend fun Context.writeBitmapToUserMemory(
     }
 }
 
-
-
-
-fun Context.openSystemViewerForSAFUri(uri: Uri) {
+fun Context.shareLocalFile(file: File) {
+    val context = this
+    val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension.lowercase()) ?: "application/octet-stream"
+    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+        type = mimeType
+        putExtra(Intent.EXTRA_STREAM, uri)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    context.startActivity(
+        Intent.createChooser(shareIntent, "Share file via")
+    )
+}
+fun Context.openSystemViewerForSAFUri(uri: Uri?) {
+    uri?:return
     val mimeType1 = FileInfo.fromSAFUri(this,uri)?.mimeType
     val extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString())
     val mimeType2 =  MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.lowercase())

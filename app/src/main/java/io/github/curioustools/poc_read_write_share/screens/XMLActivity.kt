@@ -1,8 +1,6 @@
 package io.github.curioustools.poc_read_write_share.screens
 
-import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
@@ -12,25 +10,29 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.createBitmap
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import coil3.Bitmap
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.curioustools.poc_read_write_share.data.HomeScreenState
 import io.github.curioustools.poc_read_write_share.data.RWSMediaType
-import io.github.curioustools.poc_read_write_share.data.RWSMediaType.*
+import io.github.curioustools.poc_read_write_share.data.RWSMediaType.FILE
+import io.github.curioustools.poc_read_write_share.data.RWSMediaType.IMAGE
+import io.github.curioustools.poc_read_write_share.data.RWSMediaType.PDF
 import io.github.curioustools.poc_read_write_share.databinding.ActivityXmlBinding
 import io.github.curioustools.poc_read_write_share.screens.FileInfo.Companion.toLocalFile
 import kotlinx.coroutines.launch
-import androidx.core.graphics.createBitmap
+import java.io.File
 
 
 @AndroidEntryPoint
 class XMLActivity : AppCompatActivity() {
     private val binding: ActivityXmlBinding by lazy { ActivityXmlBinding.inflate(layoutInflater) }
 
-    private var getFileFromSystem: ActivityResultLauncher<Intent> = registerForActivityResult(StartActivityForResult()) { result ->
+    private val getFileFromSystem: ActivityResultLauncher<Intent> = registerForActivityResult(StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             val uri = result.data?.data
             lifecycleScope.launch {
@@ -45,7 +47,7 @@ class XMLActivity : AppCompatActivity() {
         }
 
     }
-    private var getPDFFromSystem: ActivityResultLauncher<Intent> = registerForActivityResult(StartActivityForResult()) { result ->
+    private val getPDFFromSystem: ActivityResultLauncher<Intent> = registerForActivityResult(StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             val uri = result.data?.data
             lifecycleScope.launch {
@@ -59,7 +61,7 @@ class XMLActivity : AppCompatActivity() {
             }
         }
     }
-    private var getImageFromSystem: ActivityResultLauncher<Intent> = registerForActivityResult(StartActivityForResult()) { result ->
+    private val getImageFromSystem: ActivityResultLauncher<Intent> = registerForActivityResult(StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             val uri = result.data?.data
             lifecycleScope.launch {
@@ -73,13 +75,13 @@ class XMLActivity : AppCompatActivity() {
         }
     }
 
-    private var saveFileToSystemSAF: ActivityResultLauncher<String> = registerForActivityResult(CreateDocument("*/*")) { result ->
+    private val saveFileToSystemSAF: ActivityResultLauncher<String> = registerForActivityResult(CreateDocument("*/*")) { result ->
         val uri = result
         val file = state.fileToBeSaved
         val context = this
         if (uri!=null && file!=null){
             lifecycleScope.launch {
-                context.writeFileToUserSelectedPath(uri,file)
+                context.saveFileToUserSelectedPath(uri,file)
                 Snackbar
                     .make(binding.root,"Saved file :${file.name} to user selected directory", Snackbar.LENGTH_SHORT)
                     .setAction("show"){context.openSystemViewerForSAFUri(uri)}
@@ -88,14 +90,13 @@ class XMLActivity : AppCompatActivity() {
         }
 
     }
-
-    private var savePDFToSystemSAF:ActivityResultLauncher<String> = registerForActivityResult(CreateDocument("application/pdf")) { result ->
+    private val savePDFToSystemSAF:ActivityResultLauncher<String> = registerForActivityResult(CreateDocument("application/pdf")) { result ->
         val uri = result
         val file = state.fileToBeSaved
         val context = this
         if (uri!=null && file!=null){
             lifecycleScope.launch {
-                context.writeFileToUserSelectedPath(uri,file)
+                context.saveFileToUserSelectedPath(uri,file)
                 Snackbar
                     .make(binding.root,"Saved file :${file.name} to user selected directory", Snackbar.LENGTH_SHORT)
                     .setAction("show"){context.openSystemViewerForSAFUri(uri)}
@@ -103,13 +104,13 @@ class XMLActivity : AppCompatActivity() {
             }
         }
     }
-    private var saveImageToSystemSAF:ActivityResultLauncher<String> = registerForActivityResult(CreateDocument("image/png")) { result ->
+    private val saveImageToSystemSAF:ActivityResultLauncher<String> = registerForActivityResult(CreateDocument("image/png")) { result ->
         val uri = result
         val file = state.bitmapToBeSaved
         val context = this
         if (uri!=null && file!=null){
             lifecycleScope.launch {
-                context.writeBitmapToUserSelectedPath(uri,file)
+                context.saveBitmapToUserSelectedPath(uri,file)
                 Snackbar.make(binding.root,"Saved currentlyVisibleImage to user selected directory", Snackbar.LENGTH_SHORT)
                     .setAction("show"){context.openSystemViewerForSAFUri(uri)}
                     .show()
@@ -194,8 +195,25 @@ class XMLActivity : AppCompatActivity() {
         }
     }
 
-    private fun shareMedia(type: RWSMediaType) {
+    private fun shareMedia(shareType: RWSMediaType) {
+        val context = this
+        when(shareType){
+            IMAGE -> {
+                lifecycleScope.launch {
+                    val cachePath = File(context.cacheDir, "images")
+                    cachePath.mkdirs()
+                    val file = File(cachePath, "${System.currentTimeMillis()}.png")
+                    val bitmap = getCurrentImageViewBitmap()
+                    context.saveBitmapToUserSelectedPath(Uri.fromFile(file),bitmap)
+                    context.shareLocalFile(file)
+                }
+            }
+            PDF ,FILE -> {
+                val file = if(shareType==PDF) state.pdfFile!! else state.mediaFile!!
+                context.shareLocalFile(file)
 
+            }
+        }
     }
 
     private fun pickMediaFromUserMemory(pickerType: RWSMediaType) {
@@ -230,22 +248,27 @@ class XMLActivity : AppCompatActivity() {
 
     }
 
+    private fun getCurrentImageViewBitmap(): Bitmap{
+        val drawable = binding.imagePreviewPlaceholder.drawable
+        val bitmap = if (drawable is BitmapDrawable) {
+            drawable.bitmap
+        } else {
+            val bitmap = createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight)
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
+            drawable.draw(canvas)
+            bitmap
+        }
+        return bitmap
+    }
+
     private fun downloadMediaToUserMemoryDirect(downloadType: RWSMediaType) {
         val context =this
         when(downloadType){
             RWSMediaType.IMAGE -> {
-                val drawable = binding.imagePreviewPlaceholder.drawable
-                val bitmap = if (drawable is BitmapDrawable) {
-                    drawable.bitmap
-                } else {
-                    val bitmap = createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight)
-                    val canvas = Canvas(bitmap)
-                    drawable.setBounds(0, 0, canvas.width, canvas.height)
-                    drawable.draw(canvas)
-                    bitmap
-                }
+
                 lifecycleScope.launch {
-                    val uri = context.writeBitmapToUserMemory(bitmap)
+                    val uri = context.saveBitmapToUserMemory(getCurrentImageViewBitmap())
                     Snackbar
                         .make(binding.root,"Saved file :currentlyVisibleImage to downloads", Snackbar.LENGTH_SHORT)
                         .setAction("show"){context.openSystemViewerForSAFUri(uri)}
@@ -256,7 +279,7 @@ class XMLActivity : AppCompatActivity() {
             RWSMediaType.PDF -> {
                 lifecycleScope.launch {
                     val file = state.pdfFile!!
-                    val uri = context.writeFileToUserMemory(file)
+                    val uri = context.saveFileToUserMemory(file)
                     Snackbar
                         .make(binding.root,"Saved file :${file.name} to downloads", Snackbar.LENGTH_SHORT)
                         .setAction("show"){context.openSystemViewerForSAFUri(uri)}
@@ -267,7 +290,7 @@ class XMLActivity : AppCompatActivity() {
             RWSMediaType.FILE -> {
                 lifecycleScope.launch {
                     val file = state.mediaFile!!
-                    val uri = context.writeFileToUserMemory(file)
+                    val uri = context.saveFileToUserMemory(file)
                     Snackbar
                         .make(binding.root,"Saved file :${file.name} to downloads", Snackbar.LENGTH_SHORT)
                         .setAction("show"){context.openSystemViewerForSAFUri(uri)}
@@ -282,17 +305,8 @@ class XMLActivity : AppCompatActivity() {
     private fun downloadMediaToUserMemorySAF(downloadType: RWSMediaType) {
         when(downloadType){
             RWSMediaType.IMAGE -> {
-                val drawable = binding.imagePreviewPlaceholder.drawable
-                val bitmap = if (drawable is BitmapDrawable) {
-                    drawable.bitmap
-                } else {
-                    val bitmap = createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight)
-                    val canvas = Canvas(bitmap)
-                    drawable.setBounds(0, 0, canvas.width, canvas.height)
-                    drawable.draw(canvas)
-                    bitmap
-                }
-                state =state.copy(bitmapToBeSaved = bitmap)
+
+                state =state.copy(bitmapToBeSaved = getCurrentImageViewBitmap())
 
                 saveImageToSystemSAF.launch(state.imageFile?.name.orEmpty())
             }

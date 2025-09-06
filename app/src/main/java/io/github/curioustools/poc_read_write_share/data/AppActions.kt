@@ -11,6 +11,7 @@ sealed interface AppActions{
         val str: String,
         val duration: Int = Toast.LENGTH_SHORT
     ) : AppActions
+    data class ShowSnackBar(val config:SnackBarConfig?  = null): AppActions
 
     data class LaunchByCallback(
         val callback: (context: Context) -> Unit
@@ -19,10 +20,13 @@ sealed interface AppActions{
     data class LaunchWithResultLauncher(
         val callback: (
             context: Context,
-            resultActivityLauncher: ActivityResultLauncher<Intent>,
-            permissionLauncher: ActivityResultLauncher<Array<String>>
+            getFileFromSystem: ActivityResultLauncher<Intent>,
+            getPDFFromSystem: ActivityResultLauncher<Intent>,
+            getImageFromSystem: ActivityResultLauncher<Intent>,
+            saveFileToSystemSAF: ActivityResultLauncher<String>,
+            savePDFToSystemSAF: ActivityResultLauncher<String>,
+            saveImageToSystemSAF: ActivityResultLauncher<String>,
         ) -> Unit
     ) : AppActions
-
-
 }
+data class SnackBarConfig(val str: String, val onclick:(()-> Unit)? = null)
