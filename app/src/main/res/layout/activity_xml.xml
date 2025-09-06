@@ -49,6 +49,7 @@
 
         <!-- File Preview Card -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/clFilePreview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
@@ -99,7 +100,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Share this File"
                                 
-                                android:enabled="false" />
+                                 />
 
                             <Button
                                 android:id="@+id/btn_download_saf_file"
@@ -107,7 +108,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Download this File (SAF)"
                                 
-                                android:enabled="false"
+                                
                                 android:layout_marginStart="8dp" />
 
                             <Button
@@ -116,7 +117,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Download this File (Direct)"
                                 
-                                android:enabled="false"
+                                
                                 android:layout_marginStart="8dp" />
                         </LinearLayout>
                     </HorizontalScrollView>
@@ -131,6 +132,7 @@
 
         <!-- PDF Preview Card -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/clPdfPreview"
             android:layout_width="match_parent"
             android:layout_height="600dp"
             android:layout_margin="8dp"
@@ -172,7 +174,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Share this PDF"
                                 
-                                android:enabled="false" />
+                                 />
 
                             <Button
                                 android:id="@+id/btn_download_saf_pdf"
@@ -180,7 +182,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Download this PDF (SAF)"
                                 
-                                android:enabled="false"
+                                
                                 android:layout_marginStart="8dp" />
 
                             <Button
@@ -189,7 +191,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Download this PDF (Direct)"
                                 
-                                android:enabled="false"
+                                
                                 android:layout_marginStart="8dp" />
                         </LinearLayout>
                     </HorizontalScrollView>
@@ -227,6 +229,7 @@
 
         <!-- Image Preview Card -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/clImagePreview"
             android:layout_width="match_parent"
             android:layout_height="600dp"
             android:layout_margin="8dp"
@@ -262,7 +265,7 @@
                             android:layout_height="wrap_content"
                             android:text="Share this Image"
                             
-                            android:enabled="false" />
+                             />
 
                         <Button
                             android:id="@+id/btn_download_saf_image"
@@ -270,7 +273,7 @@
                             android:layout_height="wrap_content"
                             android:text="Download this Image (SAF)"
                             
-                            android:enabled="false"
+                            
                             android:layout_marginStart="8dp" />
 
                         <Button
@@ -279,7 +282,7 @@
                             android:layout_height="wrap_content"
                             android:text="Download this Image (Direct)"
                             
-                            android:enabled="false"
+                            
                             android:layout_marginStart="8dp" />
                     </LinearLayout>
                 </HorizontalScrollView>
