@@ -10,7 +10,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.curioustools.poc_read_write_share.data.RWSMediaType.*
 import io.github.curioustools.poc_read_write_share.screens.FileInfo
-import io.github.curioustools.poc_read_write_share.screens.FileInfo.Companion.toLocalFile
 import io.github.curioustools.poc_read_write_share.screens.XMLActivity
 import io.github.curioustools.poc_read_write_share.screens.openSystemViewerForSAFUri
 import io.github.curioustools.poc_read_write_share.screens.saveBitmapToUserMemory
@@ -18,6 +17,7 @@ import io.github.curioustools.poc_read_write_share.screens.saveBitmapToUserSelec
 import io.github.curioustools.poc_read_write_share.screens.saveFileToUserMemory
 import io.github.curioustools.poc_read_write_share.screens.saveFileToUserSelectedPath
 import io.github.curioustools.poc_read_write_share.screens.shareLocalFile
+import io.github.curioustools.poc_read_write_share.screens.toLocalFile
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

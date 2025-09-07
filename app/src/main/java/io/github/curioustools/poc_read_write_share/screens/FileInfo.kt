@@ -33,13 +33,13 @@ data class FileInfo(
     val sizeFormatted: String?,
     val createdOn: Long?,
     val modifiedOn: Long?,
-    val displayPath: String?
+    val originalLocationPath: String?
 ){
     fun prettyString(): String{
         return buildString {
             appendLine("Name:${nameWithExtension}")
             appendLine("MimeType:${mimeType}")
-            appendLine("Path:${displayPath}")
+            appendLine("Path:${originalLocationPath}")
             appendLine("Size:${sizeFormatted}")
         }
     }
@@ -90,38 +90,35 @@ data class FileInfo(
                 sizeFormatted = sizeFormatted,
                 createdOn = createdOn,
                 modifiedOn = modifiedOn,
-                displayPath = displayPath
+                originalLocationPath = displayPath
             )
         }
 
+    }
+}
 
-        // converts any uri(content/file) to a local temp file first in cache directory for easy read/write
-        suspend fun Uri.toLocalFile(context: Context,localFileLocation:File = context.cacheDir): File? {
-            val uri = this
-            return withContext(Dispatchers.IO) {
-                try {
-                    val fileInfo = FileInfo.fromSAFUri(context,uri)
-                    val fileName = fileInfo?.nameWithExtension?: "${System.currentTimeMillis()}.bin"
-
-                    val tempFile = File(localFileLocation, fileName)
-
-                    context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                        FileOutputStream(tempFile).use { outputStream ->
-                            val buffer = ByteArray(8 * 1024)
-                            var bytesRead: Int
-                            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                                outputStream.write(buffer, 0, bytesRead)
-                            }
-                        }
+// converts any uri(content/file) to a local temp file first in cache directory for easy read/write
+suspend fun Uri.toLocalFile(context: Context,localFileLocation:File = context.cacheDir): File? {
+    val uri = this
+    return withContext(Dispatchers.IO) {
+        try {
+            val fileInfo = FileInfo.fromSAFUri(context,uri)
+            val fileName = fileInfo?.nameWithExtension?: "${System.currentTimeMillis()}.bin"
+            val tempFile = File(localFileLocation, fileName)
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                FileOutputStream(tempFile).use { outputStream ->
+                    val buffer = ByteArray(8 * 1024)
+                    var bytesRead: Int
+                    while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                        outputStream.write(buffer, 0, bytesRead)
                     }
-                    tempFile
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    null
                 }
             }
+            tempFile
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
-
     }
 }
 

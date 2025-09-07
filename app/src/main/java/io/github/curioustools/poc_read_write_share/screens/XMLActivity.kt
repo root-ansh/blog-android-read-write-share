@@ -23,7 +23,6 @@ import io.github.curioustools.poc_read_write_share.data.RWSMediaType.FILE
 import io.github.curioustools.poc_read_write_share.data.RWSMediaType.IMAGE
 import io.github.curioustools.poc_read_write_share.data.RWSMediaType.PDF
 import io.github.curioustools.poc_read_write_share.databinding.ActivityXmlBinding
-import io.github.curioustools.poc_read_write_share.screens.FileInfo.Companion.toLocalFile
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -75,7 +74,7 @@ class XMLActivity : AppCompatActivity() {
         }
     }
 
-    private val saveFileToSystemSAF: ActivityResultLauncher<String> = registerForActivityResult(CreateDocument("*/*")) { result ->
+    private val saveFileToSystemSAF: ActivityResultLauncher<String> = registerForActivityResult(CreateDocument(mimeType = "*/*")) { result ->
         val uri = result
         val file = state.fileToBeSaved
         val context = this
@@ -204,7 +203,7 @@ class XMLActivity : AppCompatActivity() {
                     cachePath.mkdirs()
                     val file = File(cachePath, "${System.currentTimeMillis()}.png")
                     val bitmap = getCurrentImageViewBitmap()
-                    context.saveBitmapToUserSelectedPath(Uri.fromFile(file),bitmap)
+                    context.saveBitmapToUserSelectedPath(Uri.fromFile(file),bitmap)// convert bitmap to local cache file first
                     context.shareLocalFile(file)
                 }
             }
@@ -245,7 +244,6 @@ class XMLActivity : AppCompatActivity() {
                 getFileFromSystem.launch(intent)
             }
         }
-
     }
 
     private fun getCurrentImageViewBitmap(): Bitmap{
