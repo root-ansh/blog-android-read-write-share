@@ -23,10 +23,10 @@ Case 3 : Insurance Apps
 - On Claim completion, user should be allowed to share their settlement documents directly : Case of **Sharing Media Files to other Apps**
 
 <div style="display: flex; justify-content: center; gap: 10px;">
-  <img src="media/read_image.png" alt="Image 1" width="120"/>
-  <img src="media/downloaded.png" alt="Image 2" width="120"/>
-  <img src="media/open_with.png" alt="Image 3" width="120"/>
-  <img src="media/share.png" alt="Image 3" width="120"/>
+  <img src="media/read_image.png" alt="Image 1" width="150"/>
+  <img src="media/downloaded.png" alt="Image 2" width="150"/>
+  <img src="media/open_with.png" alt="Image 3" width="150"/>
+  <img src="media/share.png" alt="Image 3" width="150"/>
 </div>
 
 ## The Problem : Requesting Broad memory access  and risking vulnerabilities 
@@ -41,7 +41,7 @@ Traditionally, Implementing use cases like these would require storage access ru
    - **User Trust Issues** : When users see a vague prompt like “Allow this app to access your photos, media, and files?”, many would blindly declined (blocking functionality), thereby creating a poor user experience and distrust toward apps in general.
    - **System Considerations** : Starting Android R (Sdk version 30), requesting for these permissions have [no effect](https://developer.android.com/reference/android/Manifest.permission#WRITE_EXTERNAL_STORAGE). User will also see a different popup . Moreover, Google discourages the use of these permissions and have begun heavily restricting apps on playstore that raise this permission without a valid reason
 
-![popup](media/permission_popup.png)
+<img src="media/permission_popup.png" alt="Image 1" width="150"/>
 
 
 ## The Solution : Storage Access Framework and Media APIs
@@ -51,7 +51,8 @@ Traditionally, Implementing use cases like these would require storage access ru
 - **Privacy by Design**: Your app receives access only to the files the user selects, rather than unrestricted access to the entire device storage.
 - **Flexible Saving Options**: When saving media files, your app can let the user choose the exact location — whether that’s internal storage, an SD card, or a cloud-backed directory — instead of writing files silently in the background.
 
-![working](media/saf_working.png)
+<img src="media/saf_working.png" alt="Image 1" />
+
 
 ## Working
 
@@ -62,7 +63,8 @@ Lets dive directly into the code to understand how our apps can utilise the Stor
 Reading a file from user's memory is very simple. User taps on a button, sees a file picker and selects a file. The app receives the file and does its operations on it: render to screen, save to database, etc.   
 In terms of code, the operation that has to be performed after the file is picked needs to be defined before hand.
 
-![pick](media/saf_pick.gif)
+
+<img src="media/saf_pick.gif" alt="Image 1" width="150"/>
 
 1. Define the filePick launcher and what happens after the file is received : 
 ```kotlin
@@ -203,7 +205,8 @@ Writing files again requires a System result launcher (`ActivityResultContract.C
 3. On pressing save, the system picker returns a `Uri` to our code. We need to now write our local document to this location
 4. For android Q and above, **there is no SAF Path Selector required** if your app intends to save a file to certain common directories like `Downloads` , `Pictures` etc. So if your usecase allows this, you can directly save the file to user's location without needing an intermediate screen!   
 
-![save](media/saf_save.gif)
+<img src="media/saf_save.gif" alt="Image 1" width="150"/>
+
 
 **Code**
 1. Define a Create Document Launcher
@@ -352,7 +355,7 @@ suspend fun Context.saveBitmapToUserMemory(
 ### 3. Opening Content Uris without any permission
 If you have a content Uri that you want some other app to open (like zip file or a video file), you don't need to define anything in your code, a simple launcher intent will work. however this only applies for **Content Uris** (i.e the original uri received from SAF)
 
-![open](media/open_with.png)
+<img src="media/open_with.png" alt="Image 1" width="150"/>
 
 ```kotlin
 fun Context.openSystemViewerForSAFUri(uri: Uri?) {
@@ -375,7 +378,7 @@ fun Context.openSystemViewerForSAFUri(uri: Uri?) {
 ### 4. Sharing Local Files Uri without any permission
 If you want to share your local file to other apps for viewing/editing etc , you need to declare your app as a file provider. Other apps can not read the file present in your file path unless your app declares this.
 
-![share](media/share.png)
+<img src="media/share.png" alt="Image 1" width="150"/>
 
 1. in manifest, add a file provider:
 ```xml
